@@ -1,0 +1,13 @@
+.absolute {
+  transition:
+    border-color 0.15s ease-in-out,
+    border-width 0.1s ease-in-out;
+}
+
+/* Ensure the hit-area for the line is generous */
+path[stroke="transparent"] {
+  transition: opacity 0.2s;
+}
+path[stroke="transparent"]:hover {
+  cursor: pointer;
+}

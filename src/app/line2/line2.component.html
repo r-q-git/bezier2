@@ -1,0 +1,361 @@
+<div
+  class="h-screen w-screen overflow-hidden relative select-none bg-[radial-gradient(#e5e7eb_1.5px,transparent_1.5px)]"
+  (dblclick)="extendLine($event)"
+  (mousedown)="deselectAll()"
+  (contextmenu)="$event.preventDefault()"
+>
+  <div
+    class="absolute top-0 left-0 flex items-center justify-center z-[100] m-3 gap-2"
+  >
+    <button
+      (click)="addLine('linear')"
+      title="Add Linear Line"
+      class="px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-tighter bg-white hover:border border-[#ff9100]"
+    >
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m17.5 6.5-11 11"
+          stroke="#ff9100"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        ></path>
+        <rect
+          x="16.75"
+          y="3.75"
+          width="3.5"
+          height="3.5"
+          rx="1.75"
+          stroke="#ff9100"
+          stroke-width="1.5"
+        ></rect>
+        <rect
+          x="3.75"
+          y="16.75"
+          width="3.5"
+          height="3.5"
+          rx="1.75"
+          stroke="#ff9100"
+          stroke-width="1.5"
+        ></rect>
+      </svg>
+    </button>
+    <button
+      title="Add Curve Line"
+      (click)="addLine('quadratic')"
+      class="px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-tighter bg-white hover:border border-[#ff9100]"
+    >
+      <svg
+        fill="none"
+        height="24"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          clip-rule="evenodd"
+          d="M18.5 6.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM13 5.75h3.012a2.5 2.5 0 1 0 .322-1.5H13a8.71 8.71 0 0 0-4.237 1.092 2.5 2.5 0 0 0-3.421 3.421A8.71 8.71 0 0 0 4.25 13v3.334A2.499 2.499 0 0 0 5.5 21a2.5 2.5 0 0 0 .25-4.988V13a7.22 7.22 0 0 1 .747-3.21 2.5 2.5 0 0 0 3.294-3.294A7.22 7.22 0 0 1 13 5.751zM5.5 19.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm2-11a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"
+          fill="#ff9100"
+          fill-rule="evenodd"
+        ></path>
+      </svg>
+    </button>
+    <button
+      title="Add Step Line"
+      (click)="addLine('cubic')"
+      class="px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-tighter bg-white hover:border border-[#ff9100]"
+    >
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M18.5 7.5v0a4.25 4.25 0 0 1-4.25 4.25h-4.5A4.25 4.25 0 0 0 5.5 16v0"
+          stroke="#ff9100"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        ></path>
+        <rect
+          x="16.75"
+          y="3.75"
+          width="3.5"
+          height="3.5"
+          rx="1.75"
+          stroke="#ff9100"
+          stroke-width="1.5"
+        ></rect>
+        <rect
+          x="3.75"
+          y="16.75"
+          width="3.5"
+          height="3.5"
+          rx="1.75"
+          stroke="#ff9100"
+          stroke-width="1.5"
+        ></rect>
+      </svg>
+    </button>
+  </div>
+
+  <div
+    class="fixed top-1/2 h-64 z-50 px-1 py-2 rounded-lg flex flex-col items-center justify-center space-y-2 bg-white border shadow shadow-[#f6f9fb] w-20"
+    (mousedown)="$event.stopPropagation()"
+    *ngIf="selectedLine"
+  >
+    <div class="flex flex-col items-center">
+      <span class="text-[10px] uppercase text-slate-400">Stroke</span>
+      <input
+        type="color"
+        [(ngModel)]="selectedLine.color"
+        class="w-8 h-8 rounded cursor-pointer border-none"
+      />
+    </div>
+
+    <div
+      class="flex flex-col items-center"
+      *ngIf="selectedLine.type !== 'linear'"
+    >
+      <span class="text-[10px] uppercase text-slate-400">Fill</span>
+      <input
+        type="color"
+        [(ngModel)]="selectedLine.fill"
+        class="rounded cursor-pointer border-none"
+      />
+    </div>
+
+    <div class="flex flex-col items-center">
+      <span class="text-[10px] uppercase text-slate-400">Width</span>
+      <input
+        type="range"
+        min="1"
+        max="20"
+        [(ngModel)]="selectedLine.width"
+        class="w-10"
+      />
+    </div>
+
+    <div class="flex flex-col items-center">
+      <span class="text-[10px] uppercase text-slate-400">Style</span>
+      <select
+        [(ngModel)]="selectedLine.strokeStyle"
+        class="text-xs border rounded"
+      >
+        <option value="solid">Solid</option>
+        <option value="dashed">Dashed</option>
+        <option value="dotted">Dotted</option>
+      </select>
+    </div>
+
+    <div class="flex flex-col items-center">
+      <span class="text-[10px] uppercase text-slate-400">Line Cap</span>
+      <select [(ngModel)]="selectedLine.linecap" class="text-xs border rounded">
+        <option *ngIf="selectedLine.strokeStyle != 'dotted'" value="straight">
+          Straight
+        </option>
+        <option value="square">Square</option>
+        <option *ngIf="selectedLine.strokeStyle != 'dotted'" value="butt">
+          Butt
+        </option>
+        <option value="round">Round</option>
+      </select>
+    </div>
+  </div>
+
+  <ng-container *ngFor="let line of lines">
+    <div
+      class="absolute select-none cursor-move pointer-events-auto"
+      [class.border-2]="line.selected || line.hovered"
+      [class.border-dashed]="line.selected || line.hovered"
+      [class.border-blue-400]="line.selected"
+      [class.border-slate-300]="!line.selected && line.hovered"
+      [style.left.px]="getBounds(line).left"
+      [style.top.px]="getBounds(line).top"
+      [style.width.px]="getBounds(line).width"
+      [style.height.px]="getBounds(line).height"
+      [style.transform]="'rotate(' + line.rotation + 'deg)'"
+      (mousedown)="startMove($event, line)"
+      (mouseenter)="line.hovered = true"
+      (mouseleave)="line.hovered = false"
+      style="will-change: transform, left, top; z-index: 10"
+    >
+      <div
+        *ngIf="line.selected"
+        class="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2"
+      >
+        <div
+          (mousedown)="startRotate($event, line)"
+          class="p-1.5 w-8 h-8 bg-white border rounded-full flex items-center justify-center cursor-grabbing"
+        >
+          <svg
+            class="pointer-events-none"
+            width="800px"
+            height="800px"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4.06189 13C4.02104 12.6724 4 12.3387 4 12C4 7.58172 7.58172 4 12 4C14.5006 4 16.7332 5.14727 18.2002 6.94416M19.9381 11C19.979 11.3276 20 11.6613 20 12C20 16.4183 16.4183 20 12 20C9.61061 20 7.46589 18.9525 6 17.2916M9 17H6V17.2916M18.2002 4V6.94416M18.2002 6.94416V6.99993L15.2002 7M6 20V17.2916"
+              stroke="#000000"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+
+        <div
+          (mousedown)="startMove($event, line)"
+          class="w-8 h-8 p-1.5 bg-white border rounded-full flex items-center justify-center cursor-move transition-transform"
+          title="Move Line"
+        >
+          <svg
+            class="pointer-events-none"
+            width="800px"
+            height="800px"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M12.0001 2.89331L8.81809 6.07529L9.87875 7.13595L11.2501 5.76463V11.2499H5.7649L7.13619 9.8786L6.07553 8.81794L2.89355 11.9999L6.07553 15.1819L7.13619 14.1212L5.76485 12.7499H11.2501V18.2352L9.87875 16.8639L8.81809 17.9245L12.0001 21.1065L15.182 17.9245L14.1214 16.8639L12.7501 18.2352V12.7499H18.2353L16.8639 14.1213L17.9246 15.1819L21.1066 11.9999L17.9246 8.81796L16.8639 9.87862L18.2352 11.2499H12.7501V5.76463L14.1214 7.13595L15.182 6.07529L12.0001 2.89331Z"
+              fill="#080341"
+            />
+          </svg>
+        </div>
+
+        <div
+          (mousedown)="removeWholeLine($event, line.id)"
+          class="w-8 h-8 p-1.5 bg-white border rounded-full flex items-center justify-center cursor-pointer transition-transform text-red-600"
+          title="Delete"
+        >
+          <svg
+            class="pointer-events-none"
+            width="800px"
+            height="800px"
+            viewBox="0 -0.5 25 25"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6.96967 16.4697C6.67678 16.7626 6.67678 17.2374 6.96967 17.5303C7.26256 17.8232 7.73744 17.8232 8.03033 17.5303L6.96967 16.4697ZM13.0303 12.5303C13.3232 12.2374 13.3232 11.7626 13.0303 11.4697C12.7374 11.1768 12.2626 11.1768 11.9697 11.4697L13.0303 12.5303ZM11.9697 11.4697C11.6768 11.7626 11.6768 12.2374 11.9697 12.5303C12.2626 12.8232 12.7374 12.8232 13.0303 12.5303L11.9697 11.4697ZM18.0303 7.53033C18.3232 7.23744 18.3232 6.76256 18.0303 6.46967C17.7374 6.17678 17.2626 6.17678 16.9697 6.46967L18.0303 7.53033ZM13.0303 11.4697C12.7374 11.1768 12.2626 11.1768 11.9697 11.4697C11.6768 11.7626 11.6768 12.2374 11.9697 12.5303L13.0303 11.4697ZM16.9697 17.5303C17.2626 17.8232 17.7374 17.8232 18.0303 17.5303C18.3232 17.2374 18.3232 16.7626 18.0303 16.4697L16.9697 17.5303ZM11.9697 12.5303C12.2626 12.8232 12.7374 12.8232 13.0303 12.5303C13.3232 12.2374 13.3232 11.7626 13.0303 11.4697L11.9697 12.5303ZM8.03033 6.46967C7.73744 6.17678 7.26256 6.17678 6.96967 6.46967C6.67678 6.76256 6.67678 7.23744 6.96967 7.53033L8.03033 6.46967ZM8.03033 17.5303L13.0303 12.5303L11.9697 11.4697L6.96967 16.4697L8.03033 17.5303ZM13.0303 12.5303L18.0303 7.53033L16.9697 6.46967L11.9697 11.4697L13.0303 12.5303ZM11.9697 12.5303L16.9697 17.5303L18.0303 16.4697L13.0303 11.4697L11.9697 12.5303ZM13.0303 11.4697L8.03033 6.46967L6.96967 7.53033L11.9697 12.5303L13.0303 11.4697Z"
+              stroke="currentColor"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <div
+        title="Scale"
+        *ngIf="line.selected"
+        (mousedown)="startScale($event, line)"
+        class="absolute -bottom-1.5 -right-1.5 w-4 h-4 border-blue-500 bg-white border text-blue-500 cursor-nwse-resize z-50 flex items-center justify-center"
+      >
+        <svg
+          class="pointer-events-none"
+          xmlns="http://www.w3.org/2000/svg"
+          width="800px"
+          height="800px"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <g>
+            <g>
+              <g>
+                <path
+                  d="M20,21h-4c-0.6,0-1-0.4-1-1s0.4-1,1-1h4c0.6,0,1,0.4,1,1S20.6,21,20,21z"
+                />
+              </g>
+            </g>
+            <g>
+              <g>
+                <path
+                  d="M20,21c-0.6,0-1-0.4-1-1v-4c0-0.6,0.4-1,1-1s1,0.4,1,1v4C21,20.6,20.6,21,20,21z"
+                />
+              </g>
+            </g>
+            <g>
+              <g>
+                <path
+                  d="M8,5H4C3.4,5,3,4.6,3,4s0.4-1,1-1h4c0.6,0,1,0.4,1,1S8.6,5,8,5z"
+                />
+              </g>
+            </g>
+            <g>
+              <g>
+                <path
+                  d="M4,9C3.4,9,3,8.6,3,8V4c0-0.6,0.4-1,1-1s1,0.4,1,1v4C5,8.6,4.6,9,4,9z"
+                />
+              </g>
+            </g>
+            <g>
+              <g>
+                <path
+                  d="M19.8,20.8c-0.3,0-0.5-0.1-0.7-0.3L3.5,4.9c-0.4-0.4-0.4-1,0-1.4s1-0.4,1.4,0l15.6,15.6c0.4,0.4,0.4,1,0,1.4     C20.3,20.7,20,20.8,19.8,20.8z"
+                />
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <svg class="w-full h-full overflow-visible pointer-events-none">
+        <g
+          [attr.transform]="
+            'translate(' +
+            -getBounds(line).left +
+            ',' +
+            -getBounds(line).top +
+            ')'
+          "
+        >
+          <path
+            *ngFor="let seg of getSegments(line)"
+            [attr.d]="seg.d"
+            stroke="transparent"
+            stroke-width="20"
+            fill="none"
+            (mousedown)="startReshape($event, line, seg.index)"
+            class="pointer-events-auto cursor-grabbing"
+          />
+
+          <path
+            [attr.d]="getPath(line)"
+            [attr.stroke]="line.color"
+            [attr.stroke-width]="line.width"
+            [attr.fill]="line.type === 'linear' ? 'none' : line.fill"
+            [attr.stroke-dasharray]="getDashArray(line)"
+            [attr.stroke-linecap]="getLineCap(line)"
+          />
+
+          <ng-container *ngIf="line.selected">
+            <ng-container *ngFor="let pt of line.points; let i = index">
+              <circle
+                *ngIf="isAnchorPoint(i, line)"
+                [attr.cx]="pt.x"
+                [attr.cy]="pt.y"
+                r="5"
+                fill="white"
+                stroke="#2563eb"
+                stroke-width="1.5"
+                class="pointer-events-auto cursor-crosshair"
+                (mousedown)="startPointDrag($event, i)"
+                (contextmenu)="deletePoint($event, i)"
+              />
+            </ng-container>
+          </ng-container>
+        </g>
+      </svg>
+    </div>
+  </ng-container>
+</div>
