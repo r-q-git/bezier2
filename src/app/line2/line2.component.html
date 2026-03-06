@@ -134,7 +134,7 @@
 
       <div
         *ngIf="showShapeMenu"
-        class="absolute left-0 mt-2 w-48 origin-top-left bg-white border border-slate-200 rounded-xl shadow-xl z-[200] overflow-hidden"
+        class="absolute left-0 mt-2 w-56 origin-top-left bg-white border border-slate-200 rounded-xl shadow-xl z-[200] overflow-hidden"
       >
         <div class="p-1 grid grid-cols-1">
           <button
@@ -162,6 +162,27 @@
         [(ngModel)]="selectedLine.color"
         class="w-8 h-8 rounded cursor-pointer border-none"
       />
+    </div>
+    <div
+      class="flex flex-col border-l border-slate-200"
+      *ngIf="selectedLine.type !== 'linear'"
+    >
+      <label class="text-[9px] font-bold text-slate-400 uppercase"
+        >Opacity</label
+      >
+      <div class="flex items-center">
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          [(ngModel)]="selectedLine.fillOpacity"
+          class="w-10 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+        />
+        <span class="text-[10px] font-mono w-8 text-slate-500">
+          {{ selectedLine.fillOpacity * 100 | number: "1.0-0" }}%
+        </span>
+      </div>
     </div>
 
     <div
@@ -390,7 +411,7 @@
             *ngFor="let seg of getSegments(line)"
             [attr.d]="seg.d"
             stroke="transparent"
-            stroke-width="20"
+            stroke-width="30"
             fill="none"
             (mousedown)="startReshape($event, line, seg.index)"
             class="pointer-events-auto cursor-grabbing"
@@ -400,6 +421,7 @@
             [attr.d]="getPath(line)"
             [attr.stroke]="line.color"
             [attr.stroke-width]="line.width"
+            [attr.fill-opacity]="line.fillOpacity"
             [attr.fill]="line.type === 'linear' ? 'none' : line.fill"
             [attr.stroke-dasharray]="getDashArray(line)"
             [attr.stroke-linecap]="getLineCap(line)"

@@ -12,6 +12,7 @@ export interface BezierLine {
   color: string;
   width: number;
   fill: string; // New
+  fillOpacity: number;
   rotation: number;
   selected: boolean;
   hovered?: boolean;
@@ -60,6 +61,7 @@ export class Line2Component {
       color: '#4f46e5',
       fill: 'transparent', // Default to no fill
       width: 3,
+      fillOpacity: 1,
       strokeStyle: 'solid',
       linecap: 'round',
       rotation: 0,
@@ -91,6 +93,7 @@ export class Line2Component {
       points: newPoints,
       color: '#334155',
       fill: 'transparent',
+      fillOpacity: 1,
       width: 2,
       strokeStyle: 'solid',
       linecap: 'round',
