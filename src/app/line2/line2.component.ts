@@ -1,5 +1,6 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, ViewChild } from '@angular/core';
 import data from '../../assets/shapes.json';
+import { ToastComponent } from '../toast/toast.component';
 
 export interface Point {
   x: number;
@@ -48,6 +49,8 @@ export class Line2Component {
   private initialMousePos: Point = { x: 0, y: 0 };
   private initialPoints: Point[] = [];
   private pivotPoint: Point = { x: 0, y: 0 };
+
+  @ViewChild('toastComponent') toast!: ToastComponent;
 
   addLine(type: 'linear' | 'quadratic' | 'cubic') {
     // Calculate the center of the visible screen
@@ -717,6 +720,7 @@ export class Line2Component {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    this.toast.triggerToast('SVG Downloaded Successfully!');
   }
 
   /**
@@ -731,7 +735,7 @@ export class Line2Component {
     const base64String = `data:image/svg+xml;base64,${base64}`;
 
     navigator.clipboard.writeText(base64String).then(() => {
-      alert('Base64 copied to clipboard!');
+      this.toast.triggerToast('Base64 Copied to Clipboard!');
     });
   }
 
