@@ -622,5 +622,28 @@ export class Line2Component {
     }
   }
 
-  // Start Panning
+  duplicateLine(event: MouseEvent, line: BezierLine) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    // 1. Create a deep copy of the points (so they don't share memory)
+    // We offset by 20px so it's obvious a new shape appeared
+    const clonedPoints = line.points.map((p) => ({
+      x: p.x + 20,
+      y: p.y + 20,
+    }));
+
+    // 2. Create the new line object with a fresh ID
+    const newLine: BezierLine = {
+      ...line,
+      id: Math.random().toString(36).substring(2, 9),
+      points: clonedPoints,
+      selected: true, // Auto-select the new copy
+    };
+
+    // 3. Clear existing selection and push the new line
+    this.lines.forEach((l) => (l.selected = false));
+    this.lines.push(newLine);
+    this.selectedLine = newLine;
+  }
 }
