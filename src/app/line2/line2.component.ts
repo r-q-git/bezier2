@@ -1,4 +1,5 @@
 import { Component, HostListener } from '@angular/core';
+import data from '../../assets/shapes.json';
 
 export interface Point {
   x: number;
@@ -68,6 +69,39 @@ export class Line2Component {
     this.lines.forEach((l) => (l.selected = false));
     this.lines.push(newLine);
     this.selectedLine = newLine;
+  }
+
+  // Add to your component properties
+  showShapeMenu = false;
+  customShapes = [...data];
+
+  addShape(shape: any) {
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+
+    // Clone points and shift them to center
+    const newPoints = shape.points.map((p: Point) => ({
+      x: p.x + centerX,
+      y: p.y + centerY,
+    }));
+
+    const newLine: BezierLine = {
+      id: Math.random().toString(36).substring(2, 9),
+      type: shape.type,
+      points: newPoints,
+      color: '#334155',
+      fill: 'transparent',
+      width: 2,
+      strokeStyle: 'solid',
+      linecap: 'round',
+      rotation: 0,
+      selected: true,
+    };
+
+    this.lines.forEach((l) => (l.selected = false));
+    this.lines.push(newLine);
+    this.selectedLine = newLine;
+    this.showShapeMenu = false;
   }
 
   private getDefaultPoints(type: string, cx: number, cy: number): Point[] {
