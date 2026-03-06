@@ -649,4 +649,152 @@ export class Line2Component {
     this.lines.push(newLine);
     this.selectedLine = newLine;
   }
+
+  // File Handling :
+  // 3. COPY BASE64 STRING
+  // Helper to clean and prepare SVG for export
+  // 1. Core Logic to Clean and Prepare the SVG
+  // 1. Prepare the SVG String
+
+  // 2. Updated Download Function
+  /**
+   * Generates a complete SVG string containing all lines currently on the screen.
+   */
+  private generateMultiLineSVGString(): string {
+    // 1. Calculate the total bounding box for all lines to set the SVG viewbox
+    if (this.lines.length === 0) return '';
+
+    // 2. Create the opening SVG tag with the required namespace
+    // We use window dimensions for the viewbox to ensure everything is captured
+    let svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="${window.innerWidth}" height="${window.innerHeight}" viewBox="0 0 ${window.innerWidth} ${window.innerHeight}">`;
+
+    // 3. Loop through every line in your data array
+    this.lines.forEach((line) => {
+      const pathData = this.getPath(line); // Uses your existing logic [cite: 382]
+      const dashArray = this.getDashArray(line); // Uses your dash logic [cite: 273]
+      const lineCap = this.getLineCap(line); // Uses your cap logic [cite: 275]
+
+      // Determine fill: linear lines usually shouldn't have a fill
+      const fill = line.type === 'linear' ? 'none' : line.fill;
+
+      // Build the path element with all current properties
+      // We include a transform for the rotation property
+      const bounds = this.getBounds(line);
+      const transform = `rotate(${line.rotation}, ${bounds.centerX}, ${bounds.centerY})`;
+
+      svgString += `
+      <path 
+        d="${pathData}" 
+        stroke="${line.color}" 
+        stroke-width="${line.width}" 
+        fill="${fill}" 
+        fill-opacity="${line.fillOpacity}"
+        stroke-dasharray="${dashArray}"
+        stroke-linecap="${lineCap}"
+        transform="${transform}"
+      />`;
+    });
+
+    svgString += `</svg>`;
+    return svgString;
+  }
+
+  /**
+   * Downloads all lines as a single .svg file
+   */
+  exportToSVG() {
+    const svgContent = this.generateMultiLineSVGString();
+    if (!svgContent) return;
+
+    const blob = new Blob([svgContent], {
+      type: 'image/svg+xml;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `bezier-export-${Date.now()}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  /**
+   * Copies the entire multi-line SVG as a Base64 string
+   */
+  copySVGBase64() {
+    const svgContent = this.generateMultiLineSVGString();
+    if (!svgContent) return;
+
+    // Convert string to Base64
+    const base64 = btoa(unescape(encodeURIComponent(svgContent)));
+    const base64String = `data:image/svg+xml;base64,${base64}`;
+
+    navigator.clipboard.writeText(base64String).then(() => {
+      alert('Base64 copied to clipboard!');
+    });
+  }
+
+  // 2. UPLOAD SVG
+  triggerUpload() {
+    const fileInput = document.getElementById('svgUpload') as HTMLInputElement;
+    if (fileInput) fileInput.click();
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const content = e.target.result;
+      this.parseSVG(content);
+      // Reset input so the same file can be uploaded again if needed
+      event.target.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  private parseSVG(xmlString: string) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlString, 'image/svg+xml');
+    const paths = doc.querySelectorAll('path');
+
+    paths.forEach((path) => {
+      const d = path.getAttribute('d');
+      if (!d) return;
+
+      // regex to extract all numbers (including decimals and negatives)
+      const coords = d.match(/-?\d+\.?\d*/g)?.map(Number) || [];
+      const points: Point[] = [];
+
+      for (let i = 0; i < coords.length; i += 2) {
+        if (coords[i] !== undefined && coords[i + 1] !== undefined) {
+          points.push({ x: coords[i], y: coords[i + 1] });
+        }
+      }
+
+      if (points.length < 2) return;
+
+      // Determine type based on command presence
+      let type: 'linear' | 'quadratic' | 'cubic' = 'linear';
+      if (d.includes('C')) type = 'cubic';
+      else if (d.includes('Q')) type = 'quadratic';
+
+      this.lines.push({
+        id: Math.random().toString(36).substring(2, 9),
+        type,
+        points,
+        color: path.getAttribute('stroke') || '#4f46e5',
+        width: Number(path.getAttribute('stroke-width')) || 2,
+        fill: path.getAttribute('fill') || 'transparent',
+        fillOpacity: Number(path.getAttribute('fill-opacity')) || 1,
+        rotation: 0,
+        selected: false,
+        locked: false,
+        strokeStyle: 'solid',
+        linecap: 'round',
+      });
+    });
+  }
 }

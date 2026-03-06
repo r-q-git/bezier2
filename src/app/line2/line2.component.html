@@ -151,6 +151,76 @@
   </div>
 
   <div
+    class="absolute top-0 right-0 flex gap-2 p-2 bg-white border-b border-slate-200 shadow-sm items-center"
+  >
+    <input
+      type="file"
+      id="svgUpload"
+      (change)="onFileSelected($event)"
+      accept=".svg"
+      class="hidden"
+    />
+
+    <button
+      (click)="triggerUpload()"
+      class="flex items-center gap-2 px-3 py-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 rounded-md transition-all"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
+        />
+      </svg>
+      UPLOAD SVG
+    </button>
+
+    <button
+      (click)="exportToSVG()"
+      class="flex items-center gap-2 px-3 py-1.5 text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 rounded-md transition-all"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"
+        />
+      </svg>
+      DOWNLOAD
+    </button>
+
+    <button
+      (click)="copySVGBase64()"
+      class="flex items-center gap-2 px-3 py-1.5 text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 rounded-md transition-all"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path
+          d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+        ></path>
+      </svg>
+      COPY BASE64
+    </button>
+  </div>
+
+  <div
     class="fixed top-1/2 h-64 z-50 px-1 py-2 rounded-lg flex flex-col items-center justify-center space-y-2 bg-white border shadow shadow-[#f6f9fb] w-20"
     (mousedown)="$event.stopPropagation()"
     *ngIf="selectedLine"
@@ -397,7 +467,11 @@
         </svg>
       </div>
 
-      <svg class="w-full h-full overflow-visible pointer-events-none">
+      <svg
+        class="w-full h-full overflow-visible pointer-events-none"
+        id="canvas-svg"
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <g
           [attr.transform]="
             'translate(' +
