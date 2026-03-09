@@ -25,6 +25,7 @@ export interface BezierLine {
 @Component({
   selector: 'app-line-two',
   templateUrl: './line2.component.html',
+  styleUrls: ['./line2.component.css'],
 })
 export class Line2Component {
   lines: BezierLine[] = [];
@@ -37,18 +38,36 @@ export class Line2Component {
   activePointIndex: number | null = null;
 
   lastMouse: Point = { x: 0, y: 0 };
-  startAngle = 0;
-  // Add to your state variables
   draggedSegmentIndex: number | null = null;
 
-  // --- Add to your state variables ---
-  isScaling = false;
-  scaleAnchor: Point = { x: 0, y: 0 };
-  originalPoints: Point[] = [];
-  // Add these to your state
-  private initialMousePos: Point = { x: 0, y: 0 };
-  private initialPoints: Point[] = [];
-  private pivotPoint: Point = { x: 0, y: 0 };
+  // hovered point variables :
+  // Add this to your class properties
+  hoveredPointIndex: number | null = null;
+  // Add these helper methods
+  setHover(index: number | null) {
+    this.hoveredPointIndex = index;
+  }
+  isEndPoint(index: number, line: BezierLine): boolean {
+    return index === 0 || index === line.points.length - 1;
+  }
+
+  // Line width Menu toggle:
+  linemenu: boolean = false;
+
+  // color picker menu toggle :
+  isColorPickerOpen = false;
+
+  openColorPicker(input: HTMLInputElement) {
+    this.isColorPickerOpen = true;
+    input.click();
+  }
+
+  // fill color pickeer menu toggle :
+  isFillColorPickerOpen = false;
+  openFillColorPicker(input: HTMLInputElement) {
+    this.isFillColorPickerOpen = true;
+    input.click();
+  }
 
   @ViewChild('toastComponent') toast!: ToastComponent;
 
@@ -61,7 +80,7 @@ export class Line2Component {
       id: Math.random().toString(36).substring(2, 9),
       type,
       points: this.getDefaultPoints(type, centerX, centerY),
-      color: '#4f46e5',
+      color: '#ff9100',
       fill: 'transparent', // Default to no fill
       width: 3,
       fillOpacity: 1,
@@ -94,8 +113,8 @@ export class Line2Component {
       id: Math.random().toString(36).substring(2, 9),
       type: shape.type,
       points: newPoints,
-      color: '#334155',
-      fill: 'transparent',
+      color: '#ff9100',
+      fill: '#f1f3f4',
       fillOpacity: 1,
       width: 2,
       strokeStyle: 'solid',
@@ -113,6 +132,7 @@ export class Line2Component {
   private getDefaultPoints(type: string, cx: number, cy: number): Point[] {
     const width = 400;
     const height = 200;
+    const handleOffset = 60; // Distance to push control points away
 
     if (type === 'linear') {
       return [
@@ -122,19 +142,19 @@ export class Line2Component {
     }
 
     if (type === 'quadratic') {
-      // Canva "Curve" style: An arch
+      // Quadratic: Mid-point is the control handle
       return [
-        { x: cx - width / 2, y: cy + height / 2 }, // Start (Bottom Left)
-        { x: cx, y: cy - height / 2 }, // Control (Top Center)
-        { x: cx + width / 2, y: cy + height / 2 }, // End (Bottom Right)
+        { x: cx - width / 2, y: cy + height / 2 }, // Start
+        { x: cx, y: cy - height / 2 - handleOffset }, // Control Point (Pushed Upwards away from center)
+        { x: cx + width / 2, y: cy + height / 2 }, // End
       ];
     }
 
-    // cubic -> Canva "Step" style: S-Curve
+    // Cubic: Indices 1 and 2 are control handles
     return [
       { x: cx - width / 2, y: cy + height / 2 }, // Start (Bottom Left)
-      { x: cx + width / 4, y: cy + height / 2 }, // CP1 (Pushed Right, same Y as Start)
-      { x: cx - width / 4, y: cy - height / 2 }, // CP2 (Pushed Left, same Y as End)
+      { x: cx - width / 2, y: cy - handleOffset }, // CP1 (Pushed Up away from Start)
+      { x: cx + width / 2, y: cy + handleOffset }, // CP2 (Pushed Down away from End)
       { x: cx + width / 2, y: cy - height / 2 }, // End (Top Right)
     ];
   }
@@ -149,14 +169,45 @@ export class Line2Component {
     const maxY = Math.max(...ys);
     const padding = 20;
 
+    const left = minX - padding;
+    const top = minY - padding;
+    const width = maxX - minX + padding * 2;
+    const height = maxY - minY + padding * 2;
+
     return {
-      left: minX - padding,
-      top: minY - padding,
-      width: maxX - minX + padding * 2,
-      height: maxY - minY + padding * 2,
+      left,
+      top,
+      width,
+      height,
+      right: left + width, // Added this
+      bottom: top + height, // Added this
       centerX: (minX + maxX) / 2,
       centerY: (minY + maxY) / 2,
     };
+  }
+
+  rotationCenter: { x: number; y: number } | null = null;
+  initialRotationAngle: number = 0;
+  initialPointsForRotation: Point[] = [];
+
+  startRotate(event: MouseEvent, line: BezierLine) {
+    event.stopPropagation();
+    event.preventDefault();
+    this.isRotating = true;
+    this.selectedLine = line;
+
+    const b = this.getBounds(line);
+    // 1. Fix the center point
+    this.rotationCenter = { x: b.centerX, y: b.centerY };
+
+    // 2. Calculate the initial angle of the mouse relative to center
+    this.initialRotationAngle = Math.atan2(
+      event.clientY - this.rotationCenter.y,
+      event.clientX - this.rotationCenter.x,
+    );
+
+    // 3. Store original points to prevent distortion during math
+    this.initialPointsForRotation = JSON.parse(JSON.stringify(line.points));
   }
 
   // --- MOUSE HANDLERS ---
@@ -167,7 +218,6 @@ export class Line2Component {
 
     this.isMovingLine = false;
     this.isReshaping = false;
-    this.isRotating = false;
 
     this.activePointIndex = index;
   }
@@ -177,7 +227,6 @@ export class Line2Component {
 
     this.isMovingLine = false;
     this.activePointIndex = null;
-    this.isRotating = false;
 
     this.isReshaping = true;
     this.draggedSegmentIndex = segmentIndex;
@@ -187,7 +236,6 @@ export class Line2Component {
   // from reaching the background "deselectAll"
   startMove(event: MouseEvent, line: BezierLine) {
     // Prevent scaling or rotating from triggering a move
-    if (this.isScaling || this.isRotating) return;
 
     event.stopPropagation();
     event.preventDefault();
@@ -199,47 +247,16 @@ export class Line2Component {
     this.lastMouse = { x: event.clientX, y: event.clientY };
   }
 
-  startRotate(event: MouseEvent, line: BezierLine) {
-    event.stopPropagation();
-    this.isRotating = true;
-    const bounds = this.getBounds(line);
-    // Calculate initial angle from center of bounds to mouse
-    this.startAngle =
-      Math.atan2(
-        event.clientY - bounds.centerY,
-        event.clientX - bounds.centerX,
-      ) -
-      (line.rotation * Math.PI) / 180;
-  }
-
   @HostListener('window:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
     const line = this.selectedLine;
     if (!line || !line.points) return;
 
     // 2. ZOOM COMPENSATION:
-    // Calculate movement deltas adjusted for the current zoom level.
     const worldDX = event.movementX;
     const worldDY = event.movementY;
 
-    // 3. PRIORITY: Scaling
-    if (this.isScaling) {
-      // We adjust the mouse distance by scale so the expansion matches the zoom
-      const dx = event.clientX - this.initialMousePos.x;
-      const dy = event.clientY - this.initialMousePos.y;
-
-      const sensitivity = 200;
-      const scaleDelta = Math.max(dx, dy) / sensitivity;
-      const factor = Math.max(0.1, 1.0 + scaleDelta);
-
-      line.points = this.initialPoints.map((p) => ({
-        x: this.pivotPoint.x + (p.x - this.pivotPoint.x) * factor,
-        y: this.pivotPoint.y + (p.y - this.pivotPoint.y) * factor,
-      }));
-      return;
-    }
-
-    // 4. Calculate De-rotated Delta (using world space deltas)
+    // 4. Calculate De-rotated Delta
     let localDX = worldDX;
     let localDY = worldDY;
 
@@ -251,7 +268,7 @@ export class Line2Component {
       localDY = worldDX * sin + worldDY * cos;
     }
 
-    // 5. Point Dragging
+    // 5. Point Dragging (Updated with Clamping)
     if (this.activePointIndex !== null) {
       const idx = this.activePointIndex;
       const p = line.points;
@@ -261,8 +278,17 @@ export class Line2Component {
       const oldX = dragTarget.x;
       const oldY = dragTarget.y;
 
-      dragTarget.x += localDX;
-      dragTarget.y += localDY;
+      dragTarget.x = Math.max(
+        0,
+        Math.min(window.innerWidth, dragTarget.x + localDX),
+      );
+      dragTarget.y = Math.max(
+        0,
+        Math.min(window.innerHeight, dragTarget.y + localDY),
+      );
+
+      const actualDX = dragTarget.x - oldX;
+      const actualDY = dragTarget.y - oldY;
 
       if (!event.altKey) {
         p.forEach((otherPt, i) => {
@@ -272,55 +298,56 @@ export class Line2Component {
             if (isOverlapping) {
               otherPt.x = dragTarget.x;
               otherPt.y = dragTarget.y;
-              this.moveAttachedHandles(line, i, localDX, localDY);
+              this.moveAttachedHandles(line, i, actualDX, actualDY);
             }
           }
         });
       }
-      this.moveAttachedHandles(line, idx, localDX, localDY);
+      this.moveAttachedHandles(line, idx, actualDX, actualDY);
     }
 
-    // 6. Reshape Logic
+    // 6. Reshape Logic (Updated with Clamping)
     else if (this.isReshaping && this.draggedSegmentIndex !== null) {
       const p = line.points;
       const i = this.draggedSegmentIndex;
+      const flexibility = 0.8;
+
       if (line.type === 'cubic') {
-        // The "Two-Part Flexibility" trick:
-        // We move the handles, but we don't move the anchors.
-        // This lets the 'belly' of the curve move while the ends stay pinned.
-        const flexibility = 0.8;
-
-        p[i + 1].x += localDX * flexibility;
-        p[i + 1].y += localDY * flexibility;
-
-        p[i + 2].x += localDX * flexibility;
-        p[i + 2].y += localDY * flexibility;
+        // Move handles but clamp them to screen
+        [i + 1, i + 2].forEach((idx) => {
+          p[idx].x = Math.max(
+            0,
+            Math.min(window.innerWidth, p[idx].x + localDX * flexibility),
+          );
+          p[idx].y = Math.max(
+            0,
+            Math.min(window.innerHeight, p[idx].y + localDY * flexibility),
+          );
+        });
       } else if (line.type === 'quadratic') {
-        // Single part flexibility for curves
-        p[i + 1].x += localDX;
-        p[i + 1].y += localDY;
+        p[i + 1].x = Math.max(
+          0,
+          Math.min(window.innerWidth, p[i + 1].x + localDX),
+        );
+        p[i + 1].y = Math.max(
+          0,
+          Math.min(window.innerHeight, p[i + 1].y + localDY),
+        );
       }
     }
 
-    // 7. Rotation Logic
-    else if (this.isRotating) {
-      const bounds = this.getBounds(line);
-      // Adjust mouse position to World Space to find correct center
-      const mouseWorldX = event.clientX;
-      const mouseWorldY = event.clientY;
-
-      const angle = Math.atan2(
-        mouseWorldY - bounds.centerY,
-        mouseWorldX - bounds.centerX,
-      );
-      line.rotation = (angle - this.startAngle) * (180 / Math.PI);
-    }
-
-    // 8. Move Whole Box
+    // 8. Move Whole Box (Already has boundary logic)
     else if (this.isMovingLine) {
+      const canMoveX = line.points.every(
+        (p) => p.x + worldDX >= 0 && p.x + worldDX <= window.innerWidth,
+      );
+      const canMoveY = line.points.every(
+        (p) => p.y + worldDY >= 0 && p.y + worldDY <= window.innerHeight,
+      );
+
       line.points.forEach((p) => {
-        p.x += worldDX;
-        p.y += worldDY;
+        if (canMoveX) p.x += worldDX;
+        if (canMoveY) p.y += worldDY;
       });
     }
   }
@@ -351,7 +378,7 @@ export class Line2Component {
     // CASE B: Dragging a Control Handle (idx 1, 2, 4, 5...)
     // We want to mirror the angle to the handle on the other side of the anchor.
     else {
-      this.mirrorHandle(line, idx);
+      // this.mirrorHandle(line, idx);
     }
   }
 
@@ -399,10 +426,7 @@ export class Line2Component {
   stop() {
     this.isReshaping = false;
     this.isMovingLine = false;
-    this.isRotating = false;
     this.activePointIndex = null;
-    this.isScaling = false; // Add this
-    this.originalPoints = []; // Add this
     this.isMovingLine = false;
   }
   extendLine(event: MouseEvent) {
@@ -450,15 +474,37 @@ export class Line2Component {
 
   getPath(line: BezierLine): string {
     const p = line.points;
+    if (!p || p.length === 0) return '';
+
     let d = `M ${p[0].x} ${p[0].y}`;
-    const step = line.type === 'linear' ? 1 : line.type === 'quadratic' ? 2 : 3;
-    for (let i = 1; i < p.length; i += step) {
-      if (line.type === 'linear') d += ` L ${p[i].x} ${p[i].y}`;
-      else if (line.type === 'quadratic')
-        d += ` Q ${p[i].x} ${p[i].y} ${p[i + 1].x} ${p[i + 1].y}`;
-      else
-        d += ` C ${p[i].x} ${p[i].y} ${p[i + 1].x} ${p[i + 1].y} ${p[i + 2].x} ${p[i + 2].y}`;
+
+    // Linear paths just move point to point
+    if (line.type === 'linear') {
+      for (let i = 1; i < p.length; i++) {
+        d += ` L ${p[i].x} ${p[i].y}`;
+      }
+    } else {
+      // ... your existing quadratic/cubic logic ...
+      const step = line.type === 'quadratic' ? 2 : 3;
+      for (let i = 1; i < p.length; i += step) {
+        if (line.type === 'quadratic' && p[i + 1]) {
+          d += ` Q ${p[i].x} ${p[i].y} ${p[i + 1].x} ${p[i + 1].y}`;
+        } else if (line.type === 'cubic' && p[i + 2]) {
+          d += ` C ${p[i].x} ${p[i].y} ${p[i + 1].x} ${p[i + 1].y} ${p[i + 2].x} ${p[i + 2].y}`;
+        }
+      }
     }
+
+    // CHECK FOR CLOSURE
+    const first = p[0];
+    const last = p[p.length - 1];
+    const isClosed =
+      Math.abs(first.x - last.x) < 0.1 && Math.abs(first.y - last.y) < 0.1;
+
+    if (isClosed && p.length > 2) {
+      d += ' Z'; // This turns the "line" into a "shape"
+    }
+
     return d;
   }
 
@@ -485,15 +531,18 @@ export class Line2Component {
   // this method is to show only the control points which are not on the line.
   isAnchorPoint(index: number, line: BezierLine): boolean {
     if (line.type === 'linear') return true;
+
     if (line.type === 'quadratic') {
-      // Anchors are at 0, 2, 4, 6...
-      return index % 2 === 0;
+      // Start (0) and End (2) are on the line. Index 1 is the control point.
+      return index === 0 || index === 2;
     }
+
     if (line.type === 'cubic') {
-      // Anchors are at 0, 3, 6, 9...
-      return index % 3 === 0;
+      // Start (0) and End (3) are on the line. Indices 1 and 2 are control points.
+      return index === 0 || index === 3;
     }
-    return false;
+
+    return true;
   }
 
   deselectAll() {
@@ -501,9 +550,7 @@ export class Line2Component {
     if (
       this.activePointIndex !== null ||
       this.isMovingLine ||
-      this.isRotating ||
-      this.isReshaping ||
-      this.isScaling
+      this.isReshaping
     ) {
       return;
     }
@@ -551,35 +598,12 @@ export class Line2Component {
     this.activePointIndex = null;
   }
 
-  startScale(event: MouseEvent, line: BezierLine) {
-    event.stopPropagation(); // THIS IS THE FIX
-    event.preventDefault();
-
-    this.isScaling = true;
-    this.isMovingLine = false; // Guard: stop move logic
-    this.isRotating = false; // Guard: stop rotate logic
-    this.selectedLine = line;
-
-    // 1. Store the mouse position at the EXACT moment you click the handle
-    this.initialMousePos = { x: event.clientX, y: event.clientY };
-
-    // 2. Store a deep copy of the points
-    this.initialPoints = JSON.parse(JSON.stringify(line.points));
-
-    // 3. Set the Pivot (the point the line scales away from)
-    // We use the Top-Left of the current bounds as the fixed anchor
-    const bounds = this.getBounds(line);
-    this.pivotPoint = { x: bounds.left + 20, y: bounds.top + 20 };
-  }
-
   removeWholeLine(event: MouseEvent, lineId: string) {
     event.stopPropagation();
     event.preventDefault();
 
     // FIX: Kill all active states immediately
-    this.isScaling = false;
     this.isMovingLine = false;
-    this.isRotating = false;
     this.activePointIndex = null;
 
     // Perform deletion

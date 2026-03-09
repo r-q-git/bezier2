@@ -1,0 +1,47 @@
+<!-- Help Icon -->
+<button
+  (click)="togglePanel()"
+  class="fixed z-50 bottom-5 right-5 w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-md hover:bg-gray-100 border"
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    height="22"
+    viewBox="0 -960 960 960"
+    width="22"
+    fill="#6b7280"
+  >
+    <path
+      d="M160-200q-33 0-56.5-23.5T80-280v-400q0-33
+             23.5-56.5T160-760h640q33 0 56.5 23.5T880-680v400
+             q0 33-23.5 56.5T800-200H160Zm0-80h640v-400H160v400Zm160-40h320v-80H320v80Z"
+    />
+  </svg>
+</button>
+
+<!-- Controls Panel -->
+<div
+  *ngIf="visible"
+  class="fixed bottom-20 right-5 w-80 bg-white border border-gray-200 shadow-xl rounded-xl p-4"
+>
+  <!-- Close -->
+  <button
+    (click)="close()"
+    class="absolute top-2 right-2 text-gray-400 hover:text-gray-700"
+  >
+    ✕
+  </button>
+
+  <h3 class="text-lg font-semibold text-gray-800 mb-3">Controls</h3>
+
+  <div class="space-y-3 max-h-80 overflow-y-auto">
+    <div *ngFor="let item of controls" class="border-b pb-2 last:border-none">
+      <p class="font-medium text-gray-700 text-sm">
+        {{ item.title }}
+      </p>
+
+      <p class="text-xs text-gray-500">
+        {{ item.description }}
+      </p>
+    </div>
+  </div>
+</div>
