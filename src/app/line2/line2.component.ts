@@ -12,13 +12,13 @@ export interface BezierLine {
   points: Point[];
   color: string;
   width: number;
-  fill: string; // New
+  fill: string;
   fillOpacity: number;
   rotation: number;
   selected: boolean;
   hovered?: boolean;
   locked?: boolean;
-  strokeStyle: 'solid' | 'dashed' | 'dotted'; // New
+  strokeStyle: 'solid' | 'dashed' | 'dotted';
   linecap: 'straight' | 'square' | 'butt' | 'round';
 }
 
@@ -41,9 +41,7 @@ export class Line2Component {
   draggedSegmentIndex: number | null = null;
 
   // hovered point variables :
-  // Add this to your class properties
   hoveredPointIndex: number | null = null;
-  // Add these helper methods
   setHover(index: number | null) {
     this.hoveredPointIndex = index;
   }
@@ -72,7 +70,6 @@ export class Line2Component {
   @ViewChild('toastComponent') toast!: ToastComponent;
 
   addLine(type: 'linear' | 'quadratic' | 'cubic') {
-    // Calculate the center of the visible screen
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
 
@@ -81,7 +78,7 @@ export class Line2Component {
       type,
       points: this.getDefaultPoints(type, centerX, centerY),
       color: '#ff9100',
-      fill: 'transparent', // Default to no fill
+      fill: 'transparent',
       width: 3,
       fillOpacity: 1,
       strokeStyle: 'solid',
@@ -95,7 +92,7 @@ export class Line2Component {
     this.selectedLine = newLine;
   }
 
-  // Add to your component properties
+  // Shapes:
   showShapeMenu = false;
   customShapes = [...data];
 
@@ -179,8 +176,8 @@ export class Line2Component {
       top,
       width,
       height,
-      right: left + width, // Added this
-      bottom: top + height, // Added this
+      right: left + width,
+      bottom: top + height,
       centerX: (minX + maxX) / 2,
       centerY: (minY + maxY) / 2,
     };
@@ -189,26 +186,6 @@ export class Line2Component {
   rotationCenter: { x: number; y: number } | null = null;
   initialRotationAngle: number = 0;
   initialPointsForRotation: Point[] = [];
-
-  startRotate(event: MouseEvent, line: BezierLine) {
-    event.stopPropagation();
-    event.preventDefault();
-    this.isRotating = true;
-    this.selectedLine = line;
-
-    const b = this.getBounds(line);
-    // 1. Fix the center point
-    this.rotationCenter = { x: b.centerX, y: b.centerY };
-
-    // 2. Calculate the initial angle of the mouse relative to center
-    this.initialRotationAngle = Math.atan2(
-      event.clientY - this.rotationCenter.y,
-      event.clientX - this.rotationCenter.x,
-    );
-
-    // 3. Store original points to prevent distortion during math
-    this.initialPointsForRotation = JSON.parse(JSON.stringify(line.points));
-  }
 
   // --- MOUSE HANDLERS ---
   // This function identifies which segment was clicked
@@ -232,18 +209,12 @@ export class Line2Component {
     this.draggedSegmentIndex = segmentIndex;
   }
 
-  // Update your existing startMove to ensure it stops the event
-  // from reaching the background "deselectAll"
   startMove(event: MouseEvent, line: BezierLine) {
-    // Prevent scaling or rotating from triggering a move
-
     event.stopPropagation();
     event.preventDefault();
 
     this.selectLine(line);
     this.isMovingLine = true;
-
-    // Update lastMouse so the delta (movementX/Y) starts from the correct click point
     this.lastMouse = { x: event.clientX, y: event.clientY };
   }
 
@@ -304,6 +275,27 @@ export class Line2Component {
         });
       }
       this.moveAttachedHandles(line, idx, actualDX, actualDY);
+
+      // checking here if the points are closed or not!
+      const points = line.points;
+      const firstPoint = points[0];
+      const lastPoint = points[points.length - 1];
+
+      // If the user just dragged either the first or last point to meet the other
+      if (
+        this.activePointIndex === 0 ||
+        this.activePointIndex === points.length - 1
+      ) {
+        const distance = Math.sqrt(
+          Math.pow(firstPoint.x - lastPoint.x, 2) +
+            Math.pow(firstPoint.y - lastPoint.y, 2),
+        );
+
+        // If they are effectively on top of each other (within 1px)
+        if (distance < 0.5) {
+          this.toast.triggerToast('Path Closed!');
+        }
+      }
     }
 
     // 6. Reshape Logic (Updated with Clamping)
@@ -387,13 +379,10 @@ export class Line2Component {
     let anchorIdx: number;
     let oppositeIdx: number;
 
-    // Identify the anchor this handle belongs to and its opposite handle
     if ((handleIdx - 1) % 3 === 0) {
-      // Handle is AFTER anchor (1, 4, 7...)
       anchorIdx = handleIdx - 1;
       oppositeIdx = handleIdx - 2;
     } else {
-      // Handle is BEFORE anchor (2, 5, 8...)
       anchorIdx = handleIdx + 1;
       oppositeIdx = handleIdx + 2;
     }
@@ -432,7 +421,6 @@ export class Line2Component {
   extendLine(event: MouseEvent) {
     if (!this.selectedLine) return;
 
-    const bounds = this.getBounds(this.selectedLine);
     const p = this.selectedLine.points;
     const last = p[p.length - 1];
 
