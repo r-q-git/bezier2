@@ -220,7 +220,7 @@
   </div>
 
   <div
-    class="fixed top-0 left-1/2 transform -translate-x-1/2 z-50 m-3 py-2 px-1 rounded-lg flex items-center justify-center gap-2 mx-1 bg-white border shadow shadow-[#f6f9fb] h-10"
+    class="fixed top-0 left-1/2 transform -translate-x-1/2 z-50 m-3 py-2 px-1 rounded-lg flex items-center justify-center gap-2 mx-2 bg-white border  h-12 border-gray-300 shadow-xl"
     (mousedown)="$event.stopPropagation()"
     *ngIf="selectedLine"
   >
@@ -236,7 +236,7 @@
       <div
         *ngIf="linemenu"
         title="Line Width"
-        class="absolute top-8 left-1 mt-3 px-4 py-3 min-w-44 flex flex-col items-start justify-center gap-3 rounded-md bg-white border shadow shadow-[#f6f9fb]"
+        class="absolute top-10 left-1 mt-3 px-4 py-3 min-w-44 flex flex-col items-start justify-center gap-3 rounded-md bg-white border shadow shadow-[#f6f9fb]"
         (mousedown)="$event.stopPropagation()"
       >
         <div class="flex flex-col items-start justify-center gap-2 w-full">
