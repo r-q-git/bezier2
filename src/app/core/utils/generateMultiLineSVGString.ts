@@ -5,37 +5,32 @@ import { getLineCap } from './getLineCap';
 import { getPath } from './getPath';
 
 export function getProjectBounds(lines: BezierLine[]): {
+  x: number;
+  y: number;
   height: number;
   width: number;
 } {
-  let width = 0;
-  let height = 0;
-
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
 
   lines.forEach((line) => {
-    line.points.forEach((p) => {
-      if (p.x < minX) minX = p.x;
-      if (p.y < minY) minY = p.y;
-      if (p.x > maxX) maxX = p.x;
-      if (p.y > maxY) maxY = p.y;
+    line.points.forEach((p: any) => {
+      minX = Math.min(minX, p.x);
+      minY = Math.min(minY, p.y);
+      maxX = Math.max(maxX, p.x);
+      maxY = Math.max(maxY, p.y);
     });
   });
 
-  // Add a small padding (e.g., 20px) so the lines aren't touching the very edge
-  const padding = 200;
-
-  width = maxX - minX + padding * 2;
-  height = maxY - minY + padding * 2;
-
-  console.log(width);
-  console.log(height);
-  
-
-  return { height, width };
+  const padding = 10;
+  return {
+    x: minX - padding,
+    y: minY - padding,
+    width: maxX - minX + padding * 2,
+    height: maxY - minY + padding * 2,
+  };
 }
 
 export function generateMultiLineSVGString(lines: BezierLine[]): string {
@@ -45,7 +40,7 @@ export function generateMultiLineSVGString(lines: BezierLine[]): string {
 
   // 2. Create the opening SVG tag with the required namespace
   // We use window dimensions for the viewbox to ensure everything is captured
-  let svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="${obj.width}" height="${obj.height}" viewBox="0 0 ${obj.width} ${obj.height}">`;
+  let svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="${obj.width}" height="${obj.height}" viewBox="${obj.x} ${obj.y} ${obj.width} ${obj.height}">`;
 
   // 3. Loop through every line in your data array
   lines.forEach((line) => {

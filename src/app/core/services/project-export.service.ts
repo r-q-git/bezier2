@@ -3,7 +3,6 @@ import { LineService } from './line.service';
 import { QlIframeMessageService } from './QlIframeMessageService';
 import { IframeMessageType } from '../models/iframeMessage.model';
 import { copySVGBase64 } from '../utils/copySVGBase64';
-import { BezierLine } from '../models/bezier.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectExportService {
