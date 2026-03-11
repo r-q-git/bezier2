@@ -2,14 +2,18 @@ export interface Point {
   x: number;
   y: number;
 }
-
 export interface BezierLine {
   id: string;
   type: 'linear' | 'quadratic' | 'cubic';
-  points: Point[]; // Linear: 2, Quad: 3, Cubic: 4
+  points: Point[];
   color: string;
   width: number;
   fill: string;
-  locked: boolean;
+  fillOpacity: number;
+  rotation: number;
   selected: boolean;
+  hovered?: boolean;
+  locked?: boolean;
+  strokeStyle: 'solid' | 'dashed' | 'dotted';
+  linecap: 'straight' | 'square' | 'butt' | 'round';
 }

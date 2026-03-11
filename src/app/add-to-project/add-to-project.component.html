@@ -1,0 +1,85 @@
+<div class="flex items-center justify-center z-[100] m-3 gap-2">
+  <input
+    type="file"
+    id="svgUpload"
+    (change)="onFileSelected($event)"
+    accept=".svg"
+    class="hidden"
+  />
+
+  <button
+    title="Upload"
+    (click)="triggerUpload()"
+    class="px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-tighter bg-white border text-gray-500 border-gray-300 hover:border-[#ff9100] hover:text-[#ff9100]"
+  >
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+      <path
+        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
+      />
+    </svg>
+  </button>
+
+  <button
+    title="Add To Project"
+    (click)="exportCurrentDrawing()"
+    class="px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-tighter bg-white border text-gray-500 border-gray-300 hover:border-[#ff9100] hover:text-[#ff9100]"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      height="20px"
+      viewBox="0 -960 960 960"
+      width="20px"
+      fill="currentColor"
+    >
+      <path
+        d="M120-160v-640l760 320-760 320Zm80-120 474-200-474-200v140l240 60-240 60v140Zm0 0v-400 400Z"
+      />
+    </svg>
+  </button>
+
+  <!-- <button
+      title="Download Svg"
+      (click)="exportToSVG()"
+      class="px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-tighter bg-white border text-gray-500 border-gray-300 hover:border-[#ff9100] hover:text-[#ff9100]"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"
+        />
+      </svg>
+    </button>
+
+    <button
+      title="COPY BASE64"
+      (click)="copySVGBase64()"
+      class="px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-tighter bg-white border text-gray-500 border-gray-300 hover:border-[#ff9100] hover:text-[#ff9100]"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path
+          d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+        ></path>
+      </svg>
+    </button> -->
+</div>

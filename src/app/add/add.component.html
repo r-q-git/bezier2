@@ -1,0 +1,144 @@
+<div
+  class=" flex items-center justify-center z-[100] m-3 gap-2"
+>
+  <button
+    (click)="addLine('linear')"
+    title="Add Linear Line"
+    class="px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-tighter bg-white border text-gray-500 border-gray-300 hover:border-[#ff9100] hover:text-[#ff9100]"
+  >
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="m17.5 6.5-11 11"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+      ></path>
+      <rect
+        x="16.75"
+        y="3.75"
+        width="3.5"
+        height="3.5"
+        rx="1.75"
+        stroke="currentColor"
+        stroke-width="1.5"
+      ></rect>
+      <rect
+        x="3.75"
+        y="16.75"
+        width="3.5"
+        height="3.5"
+        rx="1.75"
+        stroke="currentColor"
+        stroke-width="1.5"
+      ></rect>
+    </svg>
+  </button>
+  <button
+    title="Add Curve Line"
+    (click)="addLine('quadratic')"
+    class="px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-tighter bg-white border border-gray-300 hover:border-[#ff9100] text-gray-500 hover:text-[#ff9100]"
+  >
+    <svg
+      fill="none"
+      height="24"
+      viewBox="0 0 24 24"
+      width="24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M18.5 6.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM13 5.75h3.012a2.5 2.5 0 1 0 .322-1.5H13a8.71 8.71 0 0 0-4.237 1.092 2.5 2.5 0 0 0-3.421 3.421A8.71 8.71 0 0 0 4.25 13v3.334A2.499 2.499 0 0 0 5.5 21a2.5 2.5 0 0 0 .25-4.988V13a7.22 7.22 0 0 1 .747-3.21 2.5 2.5 0 0 0 3.294-3.294A7.22 7.22 0 0 1 13 5.751zM5.5 19.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm2-11a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      ></path>
+    </svg>
+  </button>
+  <button
+    title="Add Step Line"
+    (click)="addLine('cubic')"
+    class="px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-tighter bg-white border border-gray-300 hover:border-[#ff9100] text-gray-500 hover:text-[#ff9100]"
+  >
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M18.5 7.5v0a4.25 4.25 0 0 1-4.25 4.25h-4.5A4.25 4.25 0 0 0 5.5 16v0"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+      ></path>
+      <rect
+        x="16.75"
+        y="3.75"
+        width="3.5"
+        height="3.5"
+        rx="1.75"
+        stroke="currentColor"
+        stroke-width="1.5"
+      ></rect>
+      <rect
+        x="3.75"
+        y="16.75"
+        width="3.5"
+        height="3.5"
+        rx="1.75"
+        stroke="currentColor"
+        stroke-width="1.5"
+      ></rect>
+    </svg>
+  </button>
+
+  <div class="relative inline-block text-left">
+    <button
+      title="Add Shapes"
+      (click)="showShapeMenu = !showShapeMenu"
+      class="px-4 py-2 bg-white rounded-lg flex items-center justify-center border border-gray-300 hover:border-[#ff9100] hover:text-[#ff9100] text-gray-500"
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <!-- Square -->
+        <rect x="3" y="3" width="7" height="7"></rect>
+
+        <!-- Circle -->
+        <circle cx="18" cy="6" r="3"></circle>
+
+        <!-- Cross -->
+        <path d="M14 14l6 6m-6 0l6-6"></path>
+
+        <!-- Triangle -->
+        <polygon points="3,21 7,15 11,21"></polygon>
+      </svg>
+    </button>
+
+    <div
+      *ngIf="showShapeMenu"
+      class="absolute left-0 mt-2 w-48 origin-top-left bg-white border border-slate-200 rounded-xl shadow-xl z-[200] overflow-hidden"
+    >
+      <div class="p-1 grid grid-cols-1">
+        <button
+          *ngFor="let shape of customShapes"
+          (click)="addShape(shape)"
+          class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-gray-100 hover:text-[#ff9100] rounded-lg transition-colors text-left"
+        >
+          {{ shape?.name }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+<div
+  class="h-screen w-screen overflow-hidden relative select-none bg-[radial-gradient(#e5e7eb_1.5px,transparent_1.5px)] [background-size:24px_24px]"
+  (dblclick)="extendLine($event)"
+  (mousedown)="deselectAll()"
+  (contextmenu)="$event.preventDefault()"
+>
+  <app-add class="absolute top-0 left-0"></app-add>
+
+  <app-add-to-project class="absolute top-0 right-0"></app-add-to-project>
+
+  <app-toolbar></app-toolbar>
+
+  <app-container></app-container>
+  <app-controls-help />
+  <app-toast #toastComponent />
+</div>

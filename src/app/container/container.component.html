@@ -1,0 +1,120 @@
+<ng-container *ngFor="let line of lines">
+  <div
+    class="absolute select-none cursor-move pointer-events-auto"
+    [class.border-2]="line.selected || line.hovered"
+    [class.border-dashed]="line.selected || line.hovered"
+    [class.border-blue-400]="line.selected"
+    [class.border-slate-300]="!line.selected && line.hovered"
+    [style.left.px]="getBounds(line).left"
+    [style.top.px]="getBounds(line).top"
+    [style.width.px]="getBounds(line).width"
+    [style.height.px]="getBounds(line).height"
+    (mousedown)="startMove($event, line)"
+    (mouseenter)="line.hovered = true"
+    (mouseleave)="line.hovered = false"
+    style="will-change: transform, left, top; z-index: 10"
+  >
+    <svg
+      class="w-full h-full overflow-visible pointer-events-none"
+      id="canvas-svg"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <g
+        [attr.transform]="
+          'translate(' +
+          -getBounds(line).left +
+          ',' +
+          -getBounds(line).top +
+          ')'
+        "
+      >
+        <path
+          [attr.d]="getPath(line)"
+          [attr.stroke]="line.color"
+          [attr.stroke-width]="line.width"
+          [attr.fill-opacity]="line.fillOpacity"
+          [attr.fill]="line.type === 'linear' ? 'none' : line.fill"
+          [attr.stroke-dasharray]="getDashArray(line)"
+          [attr.stroke-linecap]="getLineCap(line)"
+        />
+
+        <ng-container *ngIf="line.selected">
+          <ng-container *ngFor="let seg of getSegments(line)">
+            <ng-container *ngIf="line.type === 'quadratic'">
+              <line
+                [attr.x1]="line.points[seg.index].x"
+                [attr.y1]="line.points[seg.index].y"
+                [attr.x2]="line.points[seg.index + 1].x"
+                [attr.y2]="line.points[seg.index + 1].y"
+                stroke="#3b82f6"
+                stroke-width="1"
+                stroke-dasharray="3"
+                opacity="0.6"
+              />
+              <line
+                [attr.x1]="line.points[seg.index + 2].x"
+                [attr.y1]="line.points[seg.index + 2].y"
+                [attr.x2]="line.points[seg.index + 1].x"
+                [attr.y2]="line.points[seg.index + 1].y"
+                stroke="#3b82f6"
+                stroke-width="1"
+                stroke-dasharray="3"
+                opacity="0.6"
+              />
+            </ng-container>
+
+            <ng-container *ngIf="line.type === 'cubic'">
+              <line
+                [attr.x1]="line.points[seg.index].x"
+                [attr.y1]="line.points[seg.index].y"
+                [attr.x2]="line.points[seg.index + 1].x"
+                [attr.y2]="line.points[seg.index + 1].y"
+                stroke="#3b82f6"
+                stroke-width="1"
+                stroke-dasharray="3"
+                opacity="0.6"
+              />
+              <line
+                [attr.x1]="line.points[seg.index + 3].x"
+                [attr.y1]="line.points[seg.index + 3].y"
+                [attr.x2]="line.points[seg.index + 2].x"
+                [attr.y2]="line.points[seg.index + 2].y"
+                stroke="#3b82f6"
+                stroke-width="1"
+                stroke-dasharray="3"
+                opacity="0.6"
+              />
+            </ng-container>
+          </ng-container>
+
+          <circle
+            *ngFor="let pt of line.points; let i = index"
+            [attr.cx]="pt.x"
+            [attr.cy]="pt.y"
+            r="5"
+            [attr.fill]="
+              hoveredPointIndex === i
+                ? isEndPoint(i, line)
+                  ? '#ef4444'
+                  : '#22c55e'
+                : 'white'
+            "
+            [attr.stroke]="
+              hoveredPointIndex === i
+                ? isEndPoint(i, line)
+                  ? '#ef4444'
+                  : '#22c55e'
+                : '#2563eb'
+            "
+            stroke-width="2"
+            class="pointer-events-auto cursor-crosshair transition-colors duration-150"
+            (mouseenter)="setHover(i)"
+            (mouseleave)="setHover(null)"
+            (mousedown)="startPointDrag($event, i)"
+            (contextmenu)="deletePoint($event, i)"
+          />
+        </ng-container>
+      </g>
+    </svg>
+  </div>
+</ng-container>
