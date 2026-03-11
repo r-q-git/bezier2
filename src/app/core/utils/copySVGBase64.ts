@@ -4,7 +4,9 @@ import { generateMultiLineSVGString } from './generateMultiLineSVGString';
 /**
  * Copies the entire multi-line SVG as a Base64 string
  */
-export function copySVGBase64(lines: BezierLine[]): string {
+export function copySVGBase64(
+  lines: BezierLine[]
+): string {
   const svgContent = generateMultiLineSVGString(lines);
   if (!svgContent) return '';
 

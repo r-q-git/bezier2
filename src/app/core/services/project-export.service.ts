@@ -3,9 +3,12 @@ import { LineService } from './line.service';
 import { QlIframeMessageService } from './QlIframeMessageService';
 import { IframeMessageType } from '../models/iframeMessage.model';
 import { copySVGBase64 } from '../utils/copySVGBase64';
+import { BezierLine } from '../models/bezier.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectExportService {
+  width: number = 0;
+  height: number = 0;
   constructor(private lineService: LineService) {}
 
   /**
@@ -25,7 +28,6 @@ export class ProjectExportService {
 
     const base64Svg = copySVGBase64(lines);
     console.log(base64Svg);
-    
 
     // Send the message using your static utility
     QlIframeMessageService.sendMessageToParent(
