@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, HostListener } from '@angular/core';
 import { BezierLine } from '../core/models/bezier.model';
 import { LineService } from '../core/services/line.service';
 
@@ -24,12 +24,29 @@ export class ToolbarComponent {
     input.click();
   }
 
-  constructor(private lineService: LineService) {}
+  constructor(
+    private lineService: LineService,
+    private eRef: ElementRef,
+  ) {}
 
   ngOnInit() {
     this.lineService.selectedLine$.subscribe((line) => {
       this.selectedLine = line;
     });
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickout(event: MouseEvent) {
+    // If the click is NOT inside this component's element
+    if (!this.eRef.nativeElement.contains(event.target)) {
+      this.closeAllMenus();
+    }
+  }
+
+  closeAllMenus() {
+    this.linemenu = false;
+    this.isColorPickerOpen = false;
+    this.isFillColorPickerOpen = false;
   }
 
   duplicateLine(e: MouseEvent, line: BezierLine) {

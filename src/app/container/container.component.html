@@ -1,6 +1,6 @@
 <ng-container *ngFor="let line of lines">
   <div
-    class="absolute select-none cursor-move pointer-events-auto"
+    class="absolute select-none cursor-move pointer-events-auto z-40"
     [class.border-2]="line.selected || line.hovered"
     [class.border-dashed]="line.selected || line.hovered"
     [class.border-blue-400]="line.selected"
@@ -12,7 +12,7 @@
     (mousedown)="startMove($event, line)"
     (mouseenter)="line.hovered = true"
     (mouseleave)="line.hovered = false"
-    style="will-change: transform, left, top; z-index: 10"
+    style="will-change: transform, left, top;"
   >
     <svg
       class="w-full h-full overflow-visible pointer-events-none"

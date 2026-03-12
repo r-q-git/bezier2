@@ -119,7 +119,7 @@ export class LineService {
       width: 3,
       fillOpacity: 1,
       strokeStyle: 'solid',
-      linecap: 'round',
+      linecap: 'butt',
       rotation: 0,
       selected: true,
     };
@@ -148,7 +148,7 @@ export class LineService {
       fillOpacity: 1,
       width: 2,
       strokeStyle: 'solid',
-      linecap: 'round',
+      linecap: 'butt',
       rotation: 0,
       selected: true,
     };
