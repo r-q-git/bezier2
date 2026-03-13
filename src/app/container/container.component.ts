@@ -125,7 +125,8 @@ export class ContainerComponent {
   private startMousePos: Point = { x: 0, y: 0 };
   private originalPoints: Point[] = [];
 
-  // Add these methods
+  private scaleAnchor: Point = { x: 0, y: 0 };
+
   startScale(event: MouseEvent, line: BezierLine, handle: string) {
     event.stopPropagation();
     event.preventDefault();
@@ -133,17 +134,36 @@ export class ContainerComponent {
     this.scalingLine = line;
     this.scaleHandle = handle;
     this.startMousePos = { x: event.clientX, y: event.clientY };
-    this.initialBounds = getBounds(line);
 
-    // Store a deep copy of points to calculate scale relative to the start state
+    this.initialBounds = getBounds(line);
     this.originalPoints = JSON.parse(JSON.stringify(line.points));
+
+    const b = this.initialBounds;
+
+    // LOCK anchor once
+    switch (handle) {
+      case 'tl':
+        this.scaleAnchor = { x: b.left + b.width, y: b.top + b.height };
+        break;
+
+      case 'tr':
+        this.scaleAnchor = { x: b.left, y: b.top + b.height };
+        break;
+
+      case 'br':
+        this.scaleAnchor = { x: b.left, y: b.top };
+        break;
+
+      case 'bl':
+        this.scaleAnchor = { x: b.left + b.width, y: b.top };
+        break;
+    }
 
     const onMouseMove = (moveEvent: MouseEvent) => this.handleScale(moveEvent);
     const onMouseUp = () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
       this.scalingLine = null;
-      // Push final state to service for reactivity
       this.lineService.lines = [...this.lines];
     };
 
@@ -152,7 +172,6 @@ export class ContainerComponent {
   }
 
   // PATH: src/app/container/container.component.ts
-
   private handleScale(event: MouseEvent) {
     if (!this.scalingLine || !this.initialBounds) return;
 
@@ -161,45 +180,30 @@ export class ContainerComponent {
 
     const b = this.initialBounds;
 
-    let scale = 1;
-    let anchorX = 0;
-    let anchorY = 0;
-
-    // project movement onto diagonal
     let diagonalMove = 0;
 
     switch (this.scaleHandle) {
-      case 'tl': // ↖
-        anchorX = b.left + b.width;
-        anchorY = b.top + b.height;
+      case 'tl':
         diagonalMove = (-dx - dy) / 2;
-        scale = (b.width + diagonalMove) / b.width;
         break;
 
-      case 'tr': // ↗
-        anchorX = b.left;
-        anchorY = b.top + b.height;
+      case 'tr':
         diagonalMove = (dx - dy) / 2;
-        scale = (b.width + diagonalMove) / b.width;
         break;
 
-      case 'br': // ↘
-        anchorX = b.left;
-        anchorY = b.top;
+      case 'br':
         diagonalMove = (dx + dy) / 2;
-        scale = (b.width + diagonalMove) / b.width;
         break;
 
-      case 'bl': // ↙
-        anchorX = b.left + b.width;
-        anchorY = b.top;
+      case 'bl':
         diagonalMove = (-dx + dy) / 2;
-        scale = (b.width + diagonalMove) / b.width;
         break;
     }
 
-    const minScale = 0.05;
-    scale = Math.max(scale, minScale);
+    const scale = Math.max((b.width + diagonalMove) / b.width, 0.05);
+
+    const anchorX = this.scaleAnchor.x;
+    const anchorY = this.scaleAnchor.y;
 
     this.scalingLine.points = this.originalPoints.map((pt) => ({
       x: anchorX + (pt.x - anchorX) * scale,
