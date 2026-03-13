@@ -12,16 +12,14 @@ import { LineService } from '../core/services/line.service';
 export class MainComponent {
   @ViewChild('toastComponent') toast!: ToastComponent;
 
-  // No local state variables here anymore!
-  // We use the service as the single source of truth.
   constructor(public lineService: LineService) {}
+
 
   @HostListener('window:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
     const line = this.lineService.selectedLine;
     if (!line || !line.points) return;
 
-    // Zoom/Movement delta calculation
     const worldDX = event.movementX;
     const worldDY = event.movementY;
 

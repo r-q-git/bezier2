@@ -107,7 +107,6 @@ export class ContainerComponent {
     return getDashArray(line);
   }
 
-
   getLineCap(line: BezierLine) {
     return getLineCap(line);
   }
@@ -117,5 +116,96 @@ export class ContainerComponent {
   }
   getBounds(line: BezierLine) {
     return getBounds(line);
+  }
+
+  // Add these properties to your class
+  private scalingLine: BezierLine | null = null;
+  private scaleHandle: string = '';
+  private initialBounds: any = null;
+  private startMousePos: Point = { x: 0, y: 0 };
+  private originalPoints: Point[] = [];
+
+  // Add these methods
+  startScale(event: MouseEvent, line: BezierLine, handle: string) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    this.scalingLine = line;
+    this.scaleHandle = handle;
+    this.startMousePos = { x: event.clientX, y: event.clientY };
+    this.initialBounds = getBounds(line);
+
+    // Store a deep copy of points to calculate scale relative to the start state
+    this.originalPoints = JSON.parse(JSON.stringify(line.points));
+
+    const onMouseMove = (moveEvent: MouseEvent) => this.handleScale(moveEvent);
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      this.scalingLine = null;
+      // Push final state to service for reactivity
+      this.lineService.lines = [...this.lines];
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }
+
+  // PATH: src/app/container/container.component.ts
+
+  private handleScale(event: MouseEvent) {
+    if (!this.scalingLine || !this.initialBounds) return;
+
+    const dx = event.clientX - this.startMousePos.x;
+    const dy = event.clientY - this.startMousePos.y;
+
+    const b = this.initialBounds;
+
+    let scale = 1;
+    let anchorX = 0;
+    let anchorY = 0;
+
+    // project movement onto diagonal
+    let diagonalMove = 0;
+
+    switch (this.scaleHandle) {
+      case 'tl': // ↖
+        anchorX = b.left + b.width;
+        anchorY = b.top + b.height;
+        diagonalMove = (-dx - dy) / 2;
+        scale = (b.width + diagonalMove) / b.width;
+        break;
+
+      case 'tr': // ↗
+        anchorX = b.left;
+        anchorY = b.top + b.height;
+        diagonalMove = (dx - dy) / 2;
+        scale = (b.width + diagonalMove) / b.width;
+        break;
+
+      case 'br': // ↘
+        anchorX = b.left;
+        anchorY = b.top;
+        diagonalMove = (dx + dy) / 2;
+        scale = (b.width + diagonalMove) / b.width;
+        break;
+
+      case 'bl': // ↙
+        anchorX = b.left + b.width;
+        anchorY = b.top;
+        diagonalMove = (-dx + dy) / 2;
+        scale = (b.width + diagonalMove) / b.width;
+        break;
+    }
+
+    const minScale = 0.05;
+    scale = Math.max(scale, minScale);
+
+    this.scalingLine.points = this.originalPoints.map((pt) => ({
+      x: anchorX + (pt.x - anchorX) * scale,
+      y: anchorY + (pt.y - anchorY) * scale,
+    }));
+
+    this.lineService.selectedLine = { ...this.scalingLine };
   }
 }
